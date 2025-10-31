@@ -3,6 +3,11 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import HTTPBearer
 from routes.auth import rota as rota_autenticacao
 from database import criar_tabelas_automaticamente
+from dotenv import load_dotenv
+import os
+
+# Carregar variáveis do .env
+load_dotenv()
 
 # ==========================================================
 # CONFIGURAÇÃO DO APLICATIVO
@@ -12,34 +17,26 @@ app = FastAPI(
     description="""
 API REST desenvolvida em **FastAPI** com banco de dados **PostgreSQL**.
 
-Este serviço é responsável pelo **controle de autenticação de usuários** no sistema,
-incluindo os seguintes endpoints principais:
+Este serviço gerencia o **processo de autenticação e sessão de usuários**, incluindo:
 
 | RF  | Método | Endpoint | Descrição |
-|------|---------|-----------|-----------|
-| **RF01** | POST | `/api/v1/auth/signup` | Criar nova conta |
-| **RF02** | POST | `/api/v1/auth/login` | Fazer login |
-| **RF03** | POST | `/api/v1/auth/recuperar-senha` | Recuperar senha |
-| **RF04** | POST | `/api/v1/auth/logout` | Fazer logout |
-| **RF05** | GET  | `/api/v1/auth/me` | Retornar dados do usuário autenticado |
+|------|--------|-----------|-----------|
+| RF01 | POST   | `/api/v1/auth/signup`          | Criar nova conta |
+| RF02 | POST   | `/api/v1/auth/login`           | Fazer login |
+| RF03 | POST   | `/api/v1/auth/recuperar-senha` | Recuperar senha |
+| RF04 | POST   | `/api/v1/auth/logout`          | Fazer logout |
+| RF05 | GET    | `/api/v1/auth/me`              | Dados do usuário autenticado |
 
-Use o botão **Authorize 🔒** no canto superior direito do Swagger para autenticar suas requisições.
-    """,
-    version="1.0.0",
+Use **Authorize 🔒** no Swagger para autenticar requisições.
+""",
+    version="1.1.0",
     docs_url="/docs"
 )
 
 # ==========================================================
-# SEGURANÇA E CORS
+# CORS
 # ==========================================================
-security_scheme = HTTPBearer()
-
-origens_permitidas = [
-    "http://localhost",
-    "http://localhost:3000",
-    "http://127.0.0.1:3000",
-    "*"
-]
+origens_permitidas = os.getenv("CORS_ORIGINS", "http://localhost,http://localhost:3000").split(",")
 
 app.add_middleware(
     CORSMiddleware,
@@ -49,14 +46,16 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Segurança (mantido para coerência, mesmo sem uso direto aqui)
+security_scheme = HTTPBearer()
+
 # ==========================================================
-# EVENTO DE INICIALIZAÇÃO (STARTUP)
+# EVENTO DE STARTUP
 # ==========================================================
 @app.on_event("startup")
 def inicializar_banco():
     """
-    Executado automaticamente ao iniciar o FastAPI.
-    Garante que as tabelas definidas em models.sql existam.
+    Garante que as tabelas definidas em models.sql sejam criadas ao iniciar o serviço.
     """
     print("\n🔄 Inicializando banco de dados...")
     try:
@@ -73,12 +72,12 @@ app.include_router(rota_autenticacao)
 @app.get("/", tags=["Verificação"])
 def verificar_status():
     """
-    Endpoint simples para verificar se o serviço está online.
+    Verifica se o serviço está online.
     """
     return {
         "status": "online",
         "serviço": "Micro Auth - Serviço de Autenticação",
-        "versão": "1.0.0",
+        "versão": "1.1.0",
         "documentação_swagger": "/docs"
     }
 
@@ -87,5 +86,10 @@ def verificar_status():
 # ==========================================================
 if __name__ == "__main__":
     import uvicorn
-    print("🚀 Iniciando o servidor FastAPI em http://127.0.0.1:8000 ...")
-    uvicorn.run("main:app", host="127.0.0.1", port=8000, reload=True)
+    print("🚀 Iniciando servidor FastAPI em http://127.0.0.1:8000 ...")
+    uvicorn.run(
+        "main:app",
+        host=os.getenv("APP_HOST", "127.0.0.1"),
+        port=int(os.getenv("APP_PORT", 8000)),
+        reload=True
+    )
