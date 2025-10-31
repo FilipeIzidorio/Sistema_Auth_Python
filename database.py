@@ -3,16 +3,15 @@ import psycopg2
 from psycopg2.extras import RealDictCursor
 from dotenv import load_dotenv
 
-# ==========================
-# CARREGAR VARIÁVEIS DE AMBIENTE
-# ==========================
+
 load_dotenv()
 
-DB_HOST = os.getenv("DB_HOST", "localhost")
-DB_PORT = int(os.getenv("DB_PORT", 5432))
-DB_NAME = os.getenv("DB_NAME", "micro_auth")
-DB_USER = os.getenv("DB_USER", "postgres")
-DB_PASSWORD = os.getenv("DB_PASSWORD", "admin")
+DB_HOST = os.getenv("DB_HOST")
+DB_PORT = int(os.getenv("DB_PORT"))
+DB_NAME = os.getenv("DB_NAME")
+DB_USER = os.getenv("DB_USER")
+DB_PASSWORD = os.getenv("DB_PASSWORD")
+
 
 # Caminho do arquivo SQL com os modelos
 SQL_MODELS_FILE = os.path.join(os.path.dirname(__file__), "models.sql")

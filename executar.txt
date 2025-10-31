@@ -1,0 +1,5 @@
+cd C:\redis
+redis-server.exe
+
+redis-cli.exe
+ping
